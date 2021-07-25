@@ -1,2 +1,12 @@
+# Builds
 /target
+
+# Testing
+venv/
+*.pyc
+__pycache__
+.pytest_cache
+
+# Other
 *.drawio
+.vscode/

@@ -1,14 +1,10 @@
 [package]
-name = "methoddb"
-version = "1.0.0"
+name = "rockumentdb"
+version = "2.0.0"
 authors = ["sirfuzzalot <57846408+sirfuzzalot@users.noreply.github.com>"]
 edition = "2018"
 
 [dependencies]
-rocket = "0.4.10"
+rocket = { version = "0.5.0-rc.1", features = ["json"]}
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-
-[dependencies.rocket_contrib]
-version = "0.4.10"
-default-features= false
-features = ["json"]
