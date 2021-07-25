@@ -1,34 +1,23 @@
-#![feature(proc_macro_hygiene, decl_macro)]
 mod api;
-mod errors;
-mod memstore;
+mod datastore;
 
-use crate::memstore::MemStore;
+use crate::datastore::collection::Collection;
 use std::sync::Mutex;
 
 #[macro_use]
 extern crate rocket;
 
-type TSMemStore = Mutex<MemStore>;
+type SafeMemStore = Mutex<Collection>;
 
 #[get("/")]
-fn index() -> &'static str {
-    "MethodDB 1.0.0-alpha"
+fn version() -> &'static str {
+    "RockumentDB 2.0.0-alpha"
 }
 
-fn main() {
-    rocket::ignite()
-        .mount("/", routes![index])
-        .mount(
-            "/api/v1",
-            routes![
-                api::v1::get,
-                api::v1::list,
-                api::v1::post,
-                api::v1::put,
-                api::v1::delete
-            ],
-        )
-        .manage(TSMemStore::new(MemStore::new()))
-        .launch();
+#[launch]
+fn rocket() -> _ {
+    rocket::build()
+        .mount("/", routes![version])
+        .mount("/api/v2", routes![api::v2::find, api::v2::insert])
+        .manage(SafeMemStore::new(Collection::new(String::from("test"))))
 }

@@ -1,7 +1,7 @@
-# MethodDB
+# RockumentDB 🤘
 
-A simple Rustlang key-value in memory datastore, supporting a subset of
-HTTP verbs as commands.
+A simple document style in-memory database that implements a RESTful HTTP
+API possessing limited compatibility with MongoDB query syntax.
 
 ---
 
@@ -12,8 +12,8 @@ HTTP verbs as commands.
 | Status | Task                            |
 | :----: | :------------------------------ |
 |   -    | Build out query system          |
-|   -    | Further define datastore model  |
-|   -    | Implement limited test coverage |
+|   ✔️   | Further define datastore model  |
+|   ✔️   | Implement limited test coverage |
 
 ### 1.x.x
 
@@ -27,143 +27,155 @@ HTTP verbs as commands.
 
 ## API Reference
 
-MethodDB implements a RESTful HTTP API. Note the table path segment is
-currently unused by input is required, so any arbitrary URL-safe string
-is valid.
+RockumentDB implements a RESTful HTTP API.
 
-- [create](#create)
-- [read one](#read-one)
-- [replace](#replace)
-- [delete](#delete)
-- [list](#list)
+- [version](#version)
+- [insert](#insert)
+- [find](#find)
 
-### Create
+### version
 
-| Method | Path            | Content-Type     |
-| :----: | :-------------- | :--------------- |
-|  POST  | /api/v1/{table} | application/json |
+| Method | Path | Content-Type |
+| :----: | :--- | :----------- |
+|  GET   | /    | text/plain   |
+
+#### Response (200)
+
+```
+RockumentDB 2.0.0-alpha
+```
+
+### insert
+
+| Method | Path                 | Content-Type     |
+| :----: | :------------------- | :--------------- |
+|  POST  | /api/v2/{collection} | application/json |
 
 #### Request
 
 ```json
-{
-  "field": "value",
-  "test": 1,
-  "depth": {
-    "here": ["array", "array2"]
+[
+  {
+    "username": "johnperry",
+    "email": "johnperry@example.com",
+    "first_name": "John",
+    "last_name": "Perry",
+    "age": 75
+  },
+  {
+    "username": "louiswu",
+    "email": "louiswu@example.com",
+    "first_name": "Louis",
+    "last_name": "Wu",
+    "age": 200
   }
-}
+]
 ```
 
 #### Response (201)
 
+A list the newly created document Id's
+
 ```json
-{
-  "id": 103
-}
+[1, 2]
 ```
 
-### Read One
+### find
 
-| Method | Path                 | Content-Type     |
-| :----: | :------------------- | :--------------- |
-|  GET   | /api/v1/{table}/{id} | application/json |
+| Method | Path                               | Content-Type     |
+| :----: | :--------------------------------- | :--------------- |
+|  GET   | /api/v2/{collection}?query={query} | application/json |
+
+#### Request
+
+URL encoded query param using MongoDB style find query.
+
+```
+http://{{server}}/api/v2/test?query={username:"johnperry"}
+```
 
 #### Response (200)
 
 ```json
-{
-  "datetime": "2020-06-13T13:01:00-07:00",
-  "username": "sirfuzzalot"
-}
-```
-
-#### Response (404)
-
-```json
-{
-  "error": "Key Not Found"
-}
-```
-
-### Replace
-
-| Method | Path                 | Content-Type     |
-| :----: | :------------------- | :--------------- |
-|  PUT   | /api/v1/{table}/{id} | application/json |
-
-#### Response (200)
-
-```json
-{
-  "id": 104
-}
-```
-
-#### Response (404)
-
-```json
-{
-  "error": "Key Not Found"
-}
-```
-
-### Delete
-
-| Method | Path                 | Content-Type     |
-| :----: | :------------------- | :--------------- |
-| DELETE | /api/v1/{table}/{id} | application/json |
-
-#### Response (200)
-
-```json
-{
-  "id": 104
-}
-```
-
-#### Response (404)
-
-```json
-{
-  "error": "Key Not Found"
-}
-```
-
-### List
-
-| Method | Path            | Content-Type     |
-| :----: | :-------------- | :--------------- |
-|  GET   | /api/v1/{table} | application/json |
-
-#### Response (200)
-
-```json
-{
-  "1": {
-    "datetime": "2020-06-13T13:01:00-07:00",
-    "username": "sirfuzzalot"
-  },
-  "2": {
-    "datetime": "2020-06-13T13:01:00-07:00",
-    "username": "sirfuzzalot"
-  },
-  "3": {
-    "datetime": "2020-06-13T13:01:00-07:00",
-    "username": "sirfuzzalot"
-  },
-  "4": {
-    "datetime": "2020-06-13T13:01:00-07:00",
-    "username": "sirfuzzalot"
-  },
-  "5": {
-    "datetime": "2020-06-13T13:01:00-07:00",
-    "username": "sirfuzzalot"
+[
+  {
+    "username": "johnperry",
+    "email": "johnperry@example.com",
+    "first_name": "John",
+    "last_name": "Perry",
+    "age": 75
   }
-}
+]
+```
+
+#### Response (400)
+
+Invalid queries return 400 and an empty array.
+
+```json
+[]
+```
+
+#### Response (500)
+
+Internal server issues return 500 and an empty array
+
+```json
+[]
+```
+
+## Contributing
+
+### Tests
+
+RockumentDB has a test suite written in Rust and Python. Unittests are
+kept in their respective modules and are in Rust. HTTP API tests are
+written in Python and are located in the `tests` directory.
+
+#### Unittests
+
+I highly recommend the `cargo-watch` plugin for a TDD workflow.
+
+```
+cargo install watch
+cargo watch -x "test -- --nocapture"
+```
+
+or on its own
+
+```
+cargo test
+```
+
+#### HTTP API Tests
+
+To test the HTTP API we use `pytest`. It's a powerful testing framework
+that's fast to iterate with. You will need Python 3.6+ to run these
+tests.
+
+bash
+
+```bash
+python -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+pwsh
+
+```powershell
+python -m venv venv
+.\venv\Scripts\activate
+python -m pip install -r requirements.txt
+```
+
+```bash
+python -m pytest -vs tests
 ```
 
 ## Resources
 
-- [Rocket](https://rocket.rs/)
-- [Binary Tree Map](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html)
+- RockumentDB's Rust Docs - `cargo doc --open`
+- [Rocket Crate](https://rocket.rs/)
+- [Serde](https://serde.rs/)
+- [Serde JSON](https://docs.serde.rs/serde_json/)
