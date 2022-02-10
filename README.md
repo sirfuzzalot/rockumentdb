@@ -134,10 +134,10 @@ written in Python and are located in the `tests` directory.
 
 #### Unittests
 
-I highly recommend the `cargo-watch` plugin for a TDD workflow.
+I highly recommend the [Cargo Watch](https://crates.io/crates/cargo-watch) plugin for a TDD workflow.
 
 ```
-cargo install watch
+cargo install cargo-watch
 cargo watch -x "test -- --nocapture"
 ```
 
@@ -145,6 +145,33 @@ or on its own
 
 ```
 cargo test
+```
+
+If you use VSCode as your editor you can create a task that runs your tests everytime you save. `.vscode/tasks.json`
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "command": "cargo watch --watch src --poll --postpone --quiet --clear -x \"test -- --nocapture\"",
+      "problemMatcher": ["$rustc"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "label": "Rust: cargo watch test",
+      "presentation": {
+        "reveal": "always",
+        "clear": true
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    }
+  ]
+}
 ```
 
 #### HTTP API Tests
